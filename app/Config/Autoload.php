@@ -88,5 +88,8 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $helpers = [];
+    public $helpers = [
+        'form', // form_open(), form_close(), form_input()…
+        'url',  // site_url(), base_url(), redirect()…
+    ];
 }
