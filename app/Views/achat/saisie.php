@@ -1,56 +1,28 @@
-<?php
-/**
- * Vue : achat/saisie.php
- *
- * Page de saisie des achats.
- * Rendu par : Achat::saisie() → ici.
- *
- * Variables injectées par le Controller :
- *   $produits       array        — tous les produits (ProduitModel::getAll)
- *   $panier         array        — panier en session (peut être vide [])
- *   $total          float        — somme des montants du panier
- *   $flash_success  string|null  — message flash succès
- *   $flash_error    string|null  — message flash erreur
- */
-?>
-
 <?= $this->extend('layout/default') ?>
 
 <?= $this->section('title') ?><?= esc($titre) ?><?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
-<!-- ====================================================
-     EN-TÊTE DE PAGE
-     ==================================================== -->
 <div class="page-header">
     <span class="eyebrow">Saisie</span>
     <h1 class="page-title">Saisie des achats</h1>
 </div>
 
-<!-- ====================================================
-     MESSAGES FLASH
-     Affichés une seule fois puis effacés par CI4.
-     ==================================================== -->
 <?php if (! empty($flash_success)): ?>
     <div class="alert alert--success" role="status" aria-live="polite">
         <span aria-hidden="true">✓</span>
-        <?= $flash_success /* déjà esc() dans le Controller */ ?>
+        <?= $flash_success ?>
     </div>
 <?php endif; ?>
 
 <?php if (! empty($flash_error)): ?>
     <div class="alert alert--error" role="alert" aria-live="assertive">
         <span aria-hidden="true">⚠</span>
-        <?= $flash_error /* déjà esc() dans le Controller */ ?>
+        <?= $flash_error ?>
     </div>
 <?php endif; ?>
 
-<!-- ====================================================
-     PARTIE HAUTE — Formulaire d'ajout au panier
-     POST → Achat::ajouter()
-     form_open() génère automatiquement le champ CSRF caché.
-     ==================================================== -->
 <section aria-labelledby="form-ajout-titre">
 
     <h2 id="form-ajout-titre" class="section-label">Ajouter un article</h2>
@@ -59,7 +31,6 @@
 
         <div class="form-row">
 
-            <!-- ---- Liste déroulante des produits ---- -->
             <div class="field field--grow">
                 <label class="field__label" for="id_produit">Produit</label>
 
@@ -89,9 +60,8 @@
                 <span id="id_produit-hint" class="field__hint">
                     <?= count($produits) ?> produit(s) disponible(s)
                 </span>
-            </div><!-- /.field -->
+            </div>
 
-            <!-- ---- Stepper quantité ---- -->
             <div class="field">
                 <label class="field__label" for="quantite-input">Quantité</label>
 
@@ -124,32 +94,26 @@
                         aria-label="Augmenter la quantité"
                         onclick="stepperChange(1)"
                     >+</button>
-                </div><!-- /.qty-stepper -->
-            </div><!-- /.field -->
+                </div>
+            </div>
 
-            <!-- ---- Bouton Ajouter ---- -->
             <div class="field field--action">
-                <!-- Label invisible pour aligner verticalement avec les autres champs -->
                 <span class="field__label" aria-hidden="true"></span>
                 <button type="submit" class="btn btn--primary" id="btn-ajouter-produit">
                     ＋ Ajouter
                 </button>
             </div>
 
-        </div><!-- /.form-row -->
+        </div>
 
     <?= form_close() ?>
 
 </section>
 
-<!-- ====================================================
-     PARTIE BASSE — Récapitulatif du panier (ticket)
-     ==================================================== -->
 <section class="panier-section" aria-labelledby="panier-titre">
 
     <div class="ticket">
 
-        <!-- En-tête du ticket -->
         <div class="ticket__header">
             <h2 id="panier-titre" class="eyebrow eyebrow--flush">Panier en cours</h2>
             <?php if (! empty($panier)): ?>
@@ -158,7 +122,6 @@
         </div>
 
         <?php if (empty($panier)): ?>
-            <!-- État vide — affiché tant qu'aucun produit n'est ajouté -->
             <div class="ticket-empty" role="status" aria-live="polite">
                 <div class="ticket-empty__icon" aria-hidden="true">🛒</div>
                 <p>Aucun article pour le moment.</p>
@@ -168,7 +131,6 @@
             </div>
 
         <?php else: ?>
-            <!-- Tableau des lignes du panier -->
             <div class="table-scroll">
                 <table class="ticket-table" aria-label="Détail du panier en cours">
                     <thead>
@@ -216,9 +178,8 @@
                         </tr>
                     </tfoot>
                 </table>
-            </div><!-- /.table-scroll -->
+            </div>
 
-            <!-- Actions globales du panier -->
             <div class="ticket__footer">
                 <?= form_open(site_url('achat/vider-panier'), ['class' => 'form-inline']) ?>
                     <button
@@ -231,7 +192,6 @@
                     </button>
                 <?= form_close() ?>
 
-                <!-- Clôturer -->
                 <?= form_open(site_url('achat/cloturer'), ['class' => 'form-inline']) ?>
                     <button
                         type="submit"
@@ -243,23 +203,15 @@
                     </button>
                 <?= form_close() ?>
 
-            </div><!-- /.ticket__footer -->
+            </div>
 
         <?php endif; ?>
 
-    </div><!-- /.ticket -->
+    </div>
 
 </section>
 
-<!-- ====================================================
-     JAVASCRIPT — Stepper quantité
-     Vanilla JS uniquement, sans framework.
-     ==================================================== -->
 <script>
-/**
- * stepperChange — modifie la valeur du champ quantité.
- * @param {number} delta  +1 pour augmenter, -1 pour diminuer
- */
 function stepperChange(delta) {
     const input = document.getElementById('quantite-input');
     if (!input) return;
@@ -273,9 +225,7 @@ function stepperChange(delta) {
     document.getElementById('btn-plus').disabled  = (val >= max);
 }
 
-// Initialisation au chargement
 document.addEventListener('DOMContentLoaded', function () {
-    // Recalcule l'état sans changer la valeur
     const input = document.getElementById('quantite-input');
     if (input) {
         const v   = parseInt(input.value, 10) || 1;

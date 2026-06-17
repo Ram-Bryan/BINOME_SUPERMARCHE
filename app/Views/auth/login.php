@@ -34,12 +34,12 @@
                 
                 <div class="form-group">
                     <label for="email">Adresse Email</label>
-                    <input type="email" id="email" name="email" value="<?= set_value('email') ?>" placeholder="Entrez votre email" required>
+                    <input type="email" id="email" name="email" value="<?= set_value('email', 'caissier@gmail.com') ?>" placeholder="Entrez votre email" required>
                 </div>
 
                 <div class="form-group">
                     <label for="mot_de_passe">Mot de passe</label>
-                    <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="Entrez votre mot de passe" required>
+                    <input type="password" id="mot_de_passe" name="mot_de_passe" value="caissier123" placeholder="Entrez votre mot de passe" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Se Connecter</button>
