@@ -43,7 +43,7 @@
                             </td>
                             
                             <td>
-                                Date : <?= date('d/m/Y H:i') ?><br>
+                                Date : <?= isset($date_achat) ? esc(date('d/m/Y H:i', strtotime($date_achat))) : date('d/m/Y H:i') ?><br>
                                 Caisse : <?= esc($caisse_numero) ?><br>
                                 Caissier : <?= esc($caissier) ?>
                             </td>
@@ -67,9 +67,9 @@
                 <?php foreach ($panier as $index => $ligne): ?>
                     <tr class="item <?= $index === array_key_last($panier) ? 'last' : '' ?>">
                         <td><?= esc($ligne['designation']) ?></td>
-                        <td><?= esc(number_format($ligne['prix_unitaire'], 0, ',', ' ')) ?> FCFA</td>
+                        <td><?= esc(number_format($ligne['prix_unitaire'], 0, ',', ' ')) ?> Ar</td>
                         <td><?= esc($ligne['quantite']) ?></td>
-                        <td><?= esc(number_format($ligne['montant'], 0, ',', ' ')) ?> FCFA</td>
+                        <td><?= esc(number_format($ligne['montant'], 0, ',', ' ')) ?> Ar</td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -77,7 +77,7 @@
             <tr class="total">
                 <td colspan="2"></td>
                 <td>TOTAL:</td>
-                <td><?= esc(number_format($total, 0, ',', ' ')) ?> FCFA</td>
+                <td><?= esc(number_format($total, 0, ',', ' ')) ?> Ar</td>
             </tr>
         </table>
     </div>

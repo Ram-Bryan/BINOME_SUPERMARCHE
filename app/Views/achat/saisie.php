@@ -80,7 +80,7 @@
                             data-stock="<?= esc($p['quantite_stock']) ?>"
                         >
                             <?= esc($p['designation']) ?>
-                            — <?= esc(number_format($p['prix'], 0, ',', ' ')) ?> FCFA
+                            — <?= esc(number_format($p['prix'], 0, ',', ' ')) ?> Ar
                             (stock : <?= esc($p['quantite_stock']) ?>)
                         </option>
                     <?php endforeach; ?>
@@ -185,11 +185,11 @@
                             <tr>
                                 <td><?= esc($ligne['designation']) ?></td>
                                 <td class="is-numeric num">
-                                    <?= esc(number_format($ligne['prix_unitaire'], 0, ',', ' ')) ?> FCFA
+                                    <?= esc(number_format($ligne['prix_unitaire'], 0, ',', ' ')) ?> Ar
                                 </td>
                                 <td class="is-numeric num"><?= esc($ligne['quantite']) ?></td>
                                 <td class="is-numeric num">
-                                    <?= esc(number_format($ligne['montant'], 0, ',', ' ')) ?> FCFA
+                                    <?= esc(number_format($ligne['montant'], 0, ',', ' ')) ?> Ar
                                 </td>
                                 <td>
                                     <?= form_open(site_url('achat/supprimer-ligne'), ['class' => 'form-inline']) ?>
@@ -210,7 +210,7 @@
                         <tr class="ticket__total-row">
                             <td colspan="3">TOTAL</td>
                             <td class="is-numeric ticket__total-value">
-                                <?= esc(number_format($total, 0, ',', ' ')) ?> FCFA
+                                <?= esc(number_format($total, 0, ',', ' ')) ?> Ar
                             </td>
                             <td></td>
                         </tr>
@@ -243,10 +243,6 @@
                     </button>
                 <?= form_close() ?>
 
-                <!-- Exporter la facture -->
-                <a href="<?= site_url('achat/export') ?>" target="_blank" class="btn btn--secondary" title="Exporter les achats comme une facture">
-                    🖨 Exporter Facture
-                </a>
             </div><!-- /.ticket__footer -->
 
         <?php endif; ?>

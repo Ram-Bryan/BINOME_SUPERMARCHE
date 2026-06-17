@@ -40,6 +40,7 @@
                 <a href="<?= base_url('dashboard') ?>" class="nav-link">Changer de caisse</a>
                 <?php if(session()->get('caisse_id')): ?>
                     <a href="<?= base_url('achats') ?>" class="nav-link">Saisie des achats</a>
+                    <a href="<?= base_url('achat/liste') ?>" class="nav-link">Liste des achats</a>
                 <?php endif; ?>
             </div>
         </nav>

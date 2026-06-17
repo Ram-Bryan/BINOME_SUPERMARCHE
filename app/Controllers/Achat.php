@@ -204,25 +204,89 @@ class Achat extends BaseController
     }
 
     /**
-     * GET /achat/export
+     * GET /achat/liste
      *
-     * Exporte les achats actuels sous forme de facture (vue imprimable).
+     * Affiche la liste des achats passés.
      */
-    public function exportFacture(): string
+    public function liste()
     {
-        $panier = session()->get(self::SESSION_PANIER) ?? [];
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
 
-        $total = 0;
-        foreach ($panier as $ligne) {
-            $total += $ligne['montant'];
+        $db = \Config\Database::connect();
+        
+        $builder = $db->table('achat');
+        $builder->select('achat.*, caisse.numero as caisse_numero, caissier.email as caissier_email');
+        $builder->join('caisse', 'caisse.id_caisse = achat.id_caisse', 'left');
+        $builder->join('caissier', 'caissier.id_caissier = achat.id_caissier', 'left');
+        $builder->orderBy('achat.date_achat', 'DESC');
+        
+        $achats = $builder->get()->getResultArray();
+        
+        foreach ($achats as &$achat) {
+            $total = $db->query('SELECT SUM(quantite * prix_unitaire) as total FROM achat_details WHERE id_achat = ?', [$achat['id_achat']])->getRow()->total;
+            $achat['total'] = $total ?? 0;
         }
 
         $data = [
-            'titre'  => 'Facture',
+            'titre' => 'Liste des achats',
+            'achats' => $achats
+        ];
+
+        return view('achat/liste', $data);
+    }
+
+    /**
+     * GET /achat/export/(:num)
+     *
+     * Exporte un achat spécifique depuis la base de données.
+     */
+    public function exportFacture($id_achat = null): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        if (!$id_achat) {
+            return redirect()->to('/achat/liste')->with('error', 'Facture introuvable.');
+        }
+
+        $db = \Config\Database::connect();
+        
+        $achat = $db->table('achat')
+            ->select('achat.*, caisse.numero as caisse_numero, caissier.email as caissier_email')
+            ->join('caisse', 'caisse.id_caisse = achat.id_caisse', 'left')
+            ->join('caissier', 'caissier.id_caissier = achat.id_caissier', 'left')
+            ->where('id_achat', $id_achat)
+            ->get()->getRowArray();
+
+        if (!$achat) {
+            return redirect()->to('/achat/liste')->with('error', 'Facture introuvable.');
+        }
+
+        $details = $db->table('achat_details')
+            ->select('achat_details.*, produit.designation')
+            ->join('produit', 'produit.id_produit = achat_details.id_produit')
+            ->where('id_achat', $id_achat)
+            ->get()->getResultArray();
+
+        $panier = [];
+        $total = 0;
+        foreach ($details as $detail) {
+            $montant = $detail['quantite'] * $detail['prix_unitaire'];
+            $total += $montant;
+            $panier[] = [
+                'designation' => $detail['designation'],
+                'prix_unitaire' => $detail['prix_unitaire'],
+                'quantite' => $detail['quantite'],
+                'montant' => $montant
+            ];
+        }
+
+        $data = [
+            'titre'  => 'Facture #' . $achat['id_achat'],
             'panier' => $panier,
             'total'  => $total,
-            'caisse_numero' => session()->get('caisse_numero'),
-            'caissier' => session()->get('email')
+            'caisse_numero' => $achat['caisse_numero'],
+            'caissier' => $achat['caissier_email'],
+            'date_achat' => $achat['date_achat']
         ];
 
         return view('achat/facture', $data);
