@@ -44,8 +44,16 @@ class Achat extends BaseController
         $produitModel = new ProduitModel();
         $produits     = $produitModel->tousLesProduits();
 
-        // Récupère le panier depuis la session (tableau vide si rien encore)
         $panier = session()->get(self::SESSION_PANIER) ?? [];
+
+        // Dynamic stock adjustment for the dropdown
+        foreach ($produits as &$p) {
+            $id = $p['id_produit'];
+            if (isset($panier[$id])) {
+                $p['quantite_stock'] = max(0, $p['quantite_stock'] - $panier[$id]['quantite']);
+            }
+        }
+        unset($p);
 
         // Calcule le total côté serveur (ne jamais faire confiance au client)
         $total = 0;
@@ -64,8 +72,8 @@ class Achat extends BaseController
             'flash_error'   => session()->getFlashdata('error'),
         ];
 
-        // Charge le layout principal qui inclut lui-même la vue
-        return view('templates/layout', $data + ['vue_contenu' => 'achat/saisie']);
+        // Charge la vue qui étend layout/default.php
+        return view('achat/saisie', $data);
     }
 
     /**
@@ -193,5 +201,95 @@ class Achat extends BaseController
         session()->remove(self::SESSION_PANIER);
         session()->setFlashdata('success', 'Panier vidé. Prêt pour le client suivant.');
         return redirect()->to(site_url('achat/saisie'));
+    }
+
+    /**
+     * GET /achat/export
+     *
+     * Exporte les achats actuels sous forme de facture (vue imprimable).
+     */
+    public function exportFacture(): string
+    {
+        $panier = session()->get(self::SESSION_PANIER) ?? [];
+
+        $total = 0;
+        foreach ($panier as $ligne) {
+            $total += $ligne['montant'];
+        }
+
+        $data = [
+            'titre'  => 'Facture',
+            'panier' => $panier,
+            'total'  => $total,
+            'caisse_numero' => session()->get('caisse_numero'),
+            'caissier' => session()->get('email')
+        ];
+
+        return view('achat/facture', $data);
+    }
+
+    /**
+     * POST /achat/cloturer
+     *
+     * Clôture l'achat en l'insérant en base et décrémentant les stocks.
+     */
+    public function cloturer(): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $panier = session()->get(self::SESSION_PANIER) ?? [];
+
+        if (empty($panier)) {
+            return redirect()->to(site_url('achat/saisie'))->with('error', 'Le panier est vide.');
+        }
+
+        $caisseId = session()->get(self::SESSION_CAISSE_ID);
+        $caissierId = session()->get('id_caissier');
+
+        // Check if there is a generic client (ID 1), create if not.
+        $clientModel = new \App\Models\ClientModel();
+        $client = $clientModel->first();
+        if (!$client) {
+            $clientId = $clientModel->insert([
+                'nom' => 'Client Anonyme',
+                'telephone' => '',
+                'email' => ''
+            ]);
+        } else {
+            $clientId = $client['id_client'];
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $achatModel = new \App\Models\AchatModel();
+        $achatId = $achatModel->insert([
+            'id_client' => $clientId,
+            'id_caisse' => $caisseId,
+            'id_caissier' => $caissierId,
+            'statut' => 'cloture'
+        ]);
+
+        $detailsModel = new \App\Models\AchatDetailsModel();
+        $produitModel = new ProduitModel();
+
+        foreach ($panier as $ligne) {
+            $detailsModel->insert([
+                'id_achat' => $achatId,
+                'id_produit' => $ligne['id_produit'],
+                'quantite' => $ligne['quantite'],
+                'prix_unitaire' => $ligne['prix_unitaire']
+            ]);
+
+            // Decrement stock
+            $produitModel->decrementerStock($ligne['id_produit'], $ligne['quantite']);
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to(site_url('achat/saisie'))->with('error', 'Erreur lors de la clôture de l\'achat.');
+        }
+
+        session()->remove(self::SESSION_PANIER);
+        return redirect()->to(site_url('achat/saisie'))->with('success', 'Achat clôturé avec succès. Prêt pour le client suivant.');
     }
 }

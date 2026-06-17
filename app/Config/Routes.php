@@ -15,10 +15,12 @@ $routes->get('achats', 'Achat::saisie');
 // ---------------------------------------------------------------
 // Module Achat (étudiant B)
 // ---------------------------------------------------------------
-$routes->get('achats/saisie',               'Achat::saisie');
-$routes->post('achats/ajouter',             'Achat::ajouter');
-$routes->post('achats/supprimer-ligne',     'Achat::supprimerLigne');
-$routes->post('achats/vider-panier',        'Achat::viderPanier');
+$routes->get('achat/saisie',               'Achat::saisie');
+$routes->post('achat/ajouter',             'Achat::ajouter');
+$routes->post('achat/supprimer-ligne',     'Achat::supprimerLigne');
+$routes->post('achat/vider-panier',        'Achat::viderPanier');
+$routes->post('achat/cloturer',            'Achat::cloturer');
+$routes->get('achat/export',               'Achat::exportFacture');
 
 $routes->get('/', 'Auth::login');
 $routes->match(['get', 'post'], 'login', 'Auth::login');

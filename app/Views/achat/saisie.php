@@ -3,7 +3,7 @@
  * Vue : achat/saisie.php
  *
  * Page de saisie des achats.
- * Rendu par : Achat::saisie() → templates/layout.php → ici.
+ * Rendu par : Achat::saisie() → ici.
  *
  * Variables injectées par le Controller :
  *   $produits       array        — tous les produits (ProduitModel::getAll)
@@ -11,14 +11,14 @@
  *   $total          float        — somme des montants du panier
  *   $flash_success  string|null  — message flash succès
  *   $flash_error    string|null  — message flash erreur
- *
- * Règles respectées :
- *   - Aucun accès BDD ici (MVC strict)
- *   - Aucun inline style (tout dans public/assets/css/style.css)
- *   - Tout output utilisateur passé par esc()
- *   - CSRF géré par form_open() (champ caché automatique)
  */
 ?>
+
+<?= $this->extend('layout/default') ?>
+
+<?= $this->section('title') ?><?= esc($titre) ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
 
 <!-- ====================================================
      EN-TÊTE DE PAGE
@@ -231,17 +231,22 @@
                     </button>
                 <?= form_close() ?>
 
-                <!-- Clôturer — désactivé (tâche suivante) -->
-                <button
-                    type="button"
-                    class="btn btn--accent"
-                    id="btn-cloturer"
-                    disabled
-                    aria-disabled="true"
-                    title="Disponible à la prochaine tâche"
-                >
-                    ✔ Clôturer l'achat
-                </button>
+                <!-- Clôturer -->
+                <?= form_open(site_url('achat/cloturer'), ['class' => 'form-inline']) ?>
+                    <button
+                        type="submit"
+                        class="btn btn--accent"
+                        id="btn-cloturer"
+                        onclick="return confirm('Clôturer cet achat et mettre à jour les stocks ?')"
+                    >
+                        ✔ Clôturer l'achat
+                    </button>
+                <?= form_close() ?>
+
+                <!-- Exporter la facture -->
+                <a href="<?= site_url('achat/export') ?>" target="_blank" class="btn btn--secondary" title="Exporter les achats comme une facture">
+                    🖨 Exporter Facture
+                </a>
             </div><!-- /.ticket__footer -->
 
         <?php endif; ?>
@@ -285,3 +290,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+<?= $this->endSection() ?>
