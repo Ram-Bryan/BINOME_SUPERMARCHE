@@ -51,6 +51,18 @@ CREATE TABLE achat_details (
     FOREIGN KEY (id_produit) REFERENCES produit(id_produit)
 );
 
+CREATE VIEW v_achat AS 
+SELECT achat.*, caisse.numero AS caisse_numero, caissier.email AS caissier_email, client.nom as client_nom, client.telephone as client_telephone, client.email as client_email
+FROM achat 
+LEFT JOIN caisse ON caisse.id_caisse = achat.id_caisse 
+LEFT JOIN caissier ON caissier.id_caissier = achat.id_caissier
+LEFT JOIN client ON client.id_client = achat.id_client;
+
+CREATE VIEW v_achat_details AS 
+SELECT achat_details.*, produit.designation 
+FROM achat_details 
+JOIN produit ON produit.id_produit = achat_details.id_produit;
+
 INSERT INTO caisse (numero, libelle) VALUES ('1', 'Caisse 1');
 INSERT INTO caisse (numero, libelle) VALUES ('2', 'Caisse 2');
 
@@ -65,4 +77,3 @@ INSERT INTO produit (designation, prix, quantite_stock) VALUES ('Savon', 800, 60
 -- caissier@gmail.com
 
 INSERT INTO caissier (mot_de_passe, email) VALUES ('$2y$10$5ggM0DclsFQ9nv0xZhVmv.Yn.xBh7xA6NkQff0zbE/eWRgujvssfS', 'caissier@gmail.com');
-

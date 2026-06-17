@@ -51,6 +51,24 @@
                     </table>
                 </td>
             </tr>
+            
+            <tr class="information">
+                <td colspan="4">
+                    <table>
+                        <tr>
+                            <td>
+                                <strong>Client :</strong> <?= esc($client_nom) ?><br>
+                                <?php if (!empty($client_telephone)): ?>
+                                    <strong>Téléphone :</strong> <?= esc($client_telephone) ?><br>
+                                <?php endif; ?>
+                                <?php if (!empty($client_email)): ?>
+                                    <strong>Email :</strong> <?= esc($client_email) ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
 
             <tr class="heading">
                 <td>Produit</td>
