@@ -1,782 +1,310 @@
-/* ============================================================
-   CAISSE — Feuille de style principale
-   Projet : Caisse de supermarché (CodeIgniter)
-   ------------------------------------------------------------
-   Direction : l'interface d'un poste de caisse réel. Le ticket
-   de caisse (papier, perforation, police machine à écrire pour
-   les chiffres) et l'étiquette prix de supermarché (couleur
-   d'accent) sont les deux matériaux visuels du projet — pas de
-   décor gratuit, chaque choix vient de l'objet "caisse".
-
-   Sommaire :
-   1. Police (import)
-   2. Tokens (couleurs, typo, espacement, rayons)
-   3. Reset / base
-   4. Structure (topbar, container, barcode strip)
-   5. Carte "ticket" (login, choix caisse)
-   6. Formulaires (champs, select, stepper quantité)
-   7. Boutons
-   8. Table de ticket (récapitulatif achat)
-   9. Badges & statuts
-   10. Alertes / messages
-   11. Accessibilité (focus, reduced motion)
-   12. Responsive
-   13. Impression du ticket
-   ============================================================ */
-
-/* ---------- 1. Polices ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap");
-
-/* ---------- 2. Tokens ---------- */
 :root {
-  /* Couleurs de fond */
-  --color-bg: #f2efe6;            /* papier kraft, fond de page */
-  --color-surface: #ffffff;       /* cartes / panneaux */
-  --color-surface-alt: #fbf8f1;   /* papier ticket (zone récap) */
-
-  /* Texte */
-  --color-ink: #1e2a22;           /* texte principal */
-  --color-ink-soft: #5b6359;      /* texte secondaire */
-  --color-ink-faint: #8c9387;     /* texte tertiaire / placeholder */
-
-  /* Marque — vert épicerie (structure, topbar, actions principales) */
-  --color-primary: #1b5e3a;
-  --color-primary-dark: #123d26;
-  --color-primary-soft: #e4efe6;
-
-  /* Accent — orange étiquette prix (totaux, actions décisives) */
-  --color-accent: #e2542d;
-  --color-accent-dark: #b8401e;
-  --color-accent-soft: #fbe7df;
-
-  /* États */
-  --color-success: #3c8f5b;
-  --color-success-soft: #e6f3ea;
-  --color-danger: #b3261e;
-  --color-danger-soft: #fbe9e7;
-
-  /* Lignes / structure */
-  --color-line: #dcd5c2;
-  --color-line-strong: #c5bda5;
-
-  /* Typo */
-  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-
-  /* Échelle d'espacement */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-
-  /* Rayons — sobres, pas de bulles : objet utilitaire */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-pill: 999px;
-
-  /* Ombres — discrètes, une seule carte "soulevée" à la fois */
-  --shadow-card: 0 1px 2px rgba(30, 42, 34, 0.06), 0 8px 24px rgba(30, 42, 34, 0.08);
-
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
+    --primary-color: #1B5E3A; /* Vert épicerie */
+    --primary-hover: #14462a;
+    --accent-color: #E2542D; /* Orange étiquette */
+    --accent-hover: #cc4520;
+    --bg-color: #F2EFE6; /* Papier kraft */
+    --card-bg: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --danger-bg: #fee2e2;
+    --danger-text: #b91c1c;
+    --border-color: #e5e7eb;
+    --input-focus: rgba(27, 94, 58, 0.2);
 }
 
-/* ---------- 3. Reset / base ---------- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  font-size: 16px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
 body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--color-ink);
-}
-
-p {
-  margin: 0 0 var(--space-3);
-}
-
-a {
-  color: var(--color-primary);
-}
-
-img {
-  max-width: 100%;
-}
-
-/* Étiquette "eyebrow" — petit label stampé au-dessus d'un titre */
-.eyebrow {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-primary);
-  margin-bottom: var(--space-2);
-}
-
-/* Tous les nombres (prix, quantités, totaux) en police machine,
-   alignement net pour une lecture rapide en caisse */
-.num {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-/* ---------- 4. Structure ---------- */
-
-/* Liseré "code-barres" — signature discrète en tête de chaque écran */
-.barcode-strip {
-  height: 6px;
-  width: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--color-primary-dark) 0 2px,
-    transparent 2px 5px,
-    var(--color-accent) 5px 6px,
-    transparent 6px 11px,
-    var(--color-primary-dark) 11px 12px,
-    transparent 12px 18px
-  );
-}
-
-.app-shell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.container {
-  width: 100%;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 var(--space-5);
-}
-
-/* Bandeau supérieur — affiche la caisse en session + le caissier connecté */
-.app-topbar {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.app-topbar__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-5);
-}
-
-.app-topbar__brand {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #fff;
-}
-
-.app-topbar__meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* Puce "Caisse N°2" — toujours visible une fois la session active */
-.topbar-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-pill);
-  padding: var(--space-1) var(--space-4);
-  font-size: 0.85rem;
-}
-
-.topbar-chip__label {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.topbar-chip__value {
-  font-family: var(--font-mono);
-  font-weight: 600;
-}
-
-.app-main {
-  flex: 1;
-  padding: var(--space-6) 0;
-}
-
-/* Navigation simple du menu (Saisie achat / Historique / Déconnexion...) */
-.app-nav {
-  display: flex;
-  gap: var(--space-5);
-  margin-top: var(--space-2);
-}
-
-.app-nav a {
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-size: 0.9rem;
-  padding-bottom: var(--space-1);
-  border-bottom: 2px solid transparent;
-  transition: border-color var(--transition-fast);
-}
-
-.app-nav a:hover,
-.app-nav a[aria-current="page"] {
-  border-bottom-color: var(--color-accent);
-  color: #fff;
-}
-
-/* ---------- 5. Carte "ticket" — login, choix de caisse ---------- */
-
-.auth-screen {
-  min-height: calc(100vh - 6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6) var(--space-4);
-}
-
-.card-ticket {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-6) var(--space-5) var(--space-5);
-}
-
-/* Bord perforé en haut de la carte, comme l'en-tête d'un ticket
-   détaché d'un carnet — le seul "accessoire" décoratif du projet */
-.card-ticket::before {
-  content: "";
-  position: absolute;
-  top: -7px;
-  left: 0;
-  right: 0;
-  height: 14px;
-  background: radial-gradient(circle 7px, var(--color-bg) 99%, transparent 100%);
-  background-size: 22px 14px;
-  background-repeat: repeat-x;
-  background-position: top center;
-}
-
-.card-ticket__header {
-  text-align: center;
-  margin-bottom: var(--space-5);
-}
-
-.card-ticket__title {
-  font-size: 1.5rem;
-}
-
-.card-ticket__subtitle {
-  color: var(--color-ink-soft);
-  font-size: 0.9rem;
-  margin-top: var(--space-1);
-}
-
-/* ---------- 6. Formulaires ---------- */
-
-.field {
-  margin-bottom: var(--space-4);
-}
-
-.field__label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  margin-bottom: var(--space-2);
-}
-
-.field__hint {
-  font-size: 0.78rem;
-  color: var(--color-ink-faint);
-  margin-top: var(--space-1);
-}
-
-.field__error {
-  font-size: 0.8rem;
-  color: var(--color-danger);
-  margin-top: var(--space-1);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.input,
-.select {
-  width: 100%;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  color: var(--color-ink);
-  background: var(--color-surface);
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.select {
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-soft) 50%),
-    linear-gradient(135deg, var(--color-ink-soft) 50%, transparent 50%);
-  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  padding-right: 36px;
-}
-
-.input:hover,
-.select:hover {
-  border-color: var(--color-ink-faint);
-}
-
-.input:focus,
-.select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
-}
-
-.input.is-invalid,
-.select.is-invalid {
-  border-color: var(--color-danger);
-}
-
-.input.is-invalid:focus,
-.select.is-invalid:focus {
-  box-shadow: 0 0 0 3px var(--color-danger-soft);
-}
-
-.input::placeholder {
-  color: var(--color-ink-faint);
-}
-
-.input:disabled,
-.select:disabled,
-.input[readonly] {
-  background: var(--color-bg);
-  color: var(--color-ink-faint);
-  cursor: not-allowed;
-}
-
-/* Stepper de quantité — plus rapide qu'un champ libre pour un caissier */
-.qty-stepper {
-  display: inline-flex;
-  align-items: stretch;
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  width: fit-content;
-}
-
-.qty-stepper__btn {
-  width: 38px;
-  background: var(--color-bg);
-  border: none;
-  font-family: var(--font-mono);
-  font-size: 1.1rem;
-  color: var(--color-primary-dark);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.qty-stepper__btn:hover {
-  background: var(--color-primary-soft);
-}
-
-.qty-stepper__input {
-  width: 56px;
-  border: none;
-  border-left: 1px solid var(--color-line-strong);
-  border-right: 1px solid var(--color-line-strong);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0;
-}
-
-.qty-stepper__input:focus {
-  outline: none;
-  background: var(--color-primary-soft);
-}
-
-/* ---------- 7. Boutons ---------- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.92rem;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 11px 22px;
-  cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast),
-    transform var(--transition-fast);
-  text-decoration: none;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn:disabled,
-.btn[aria-disabled="true"] {
-  cursor: not-allowed;
-  opacity: 0.5;
-  transform: none;
-}
-
-.btn--block {
-  width: 100%;
-}
-
-/* Action principale (Valider, Ajouter au panier) */
-.btn--primary {
-  background: var(--color-primary);
-  color: #fff;
-}
-
-.btn--primary:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-}
-
-/* Action décisive et irréversible (Clôturer l'achat) — couleur distincte
-   volontairement, pour que le poids de l'action soit visible avant le clic */
-.btn--accent {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.btn--accent:hover:not(:disabled) {
-  background: var(--color-accent-dark);
-}
-
-/* Action secondaire (Annuler, Retour) */
-.btn--ghost {
-  background: transparent;
-  border-color: var(--color-line-strong);
-  color: var(--color-ink);
-}
-
-.btn--ghost:hover:not(:disabled) {
-  background: var(--color-bg);
-}
-
-/* Action destructive (Supprimer une ligne, Déconnexion forcée) */
-.btn--danger {
-  background: transparent;
-  color: var(--color-danger);
-  border-color: var(--color-danger-soft);
-}
-
-.btn--danger:hover:not(:disabled) {
-  background: var(--color-danger-soft);
-}
-
-.btn--sm {
-  padding: 6px 12px;
-  font-size: 0.82rem;
-}
-
-/* ---------- 8. Table de ticket (récapitulatif d'achat) ---------- */
-
-.ticket {
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.ticket__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px dashed var(--color-line-strong);
-}
-
-.table-scroll {
-  overflow-x: auto;
-}
-
-.ticket-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.ticket-table th {
-  text-align: left;
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-  padding: var(--space-2) var(--space-5);
-  border-bottom: 1px solid var(--color-line);
-}
-
-.ticket-table th.is-numeric,
-.ticket-table td.is-numeric {
-  text-align: right;
-}
-
-.ticket-table td {
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--color-line);
-  font-size: 0.92rem;
-}
-
-.ticket-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.ticket-table tbody tr {
-  transition: background var(--transition-fast);
-}
-
-.ticket-table tbody tr:hover {
-  background: rgba(27, 94, 58, 0.04);
-}
-
-/* Flash transitoire sur la dernière ligne ajoutée — confirme l'action
-   sans avoir besoin d'une alerte intrusive */
-.ticket-table tr.is-new {
-  animation: row-confirm 900ms ease-out;
-}
-
-@keyframes row-confirm {
-  0% { background: var(--color-success-soft); }
-  100% { background: transparent; }
-}
-
-.ticket__total-row td {
-  border-top: 2px solid var(--color-ink);
-  border-bottom: none;
-  padding-top: var(--space-4);
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.ticket__total-value {
-  font-family: var(--font-mono);
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--color-accent-dark);
-}
-
-.ticket__footer {
-  padding: var(--space-4) var(--space-5);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  border-top: 1px dashed var(--color-line-strong);
-}
-
-/* État vide — avant tout article ajouté */
-.ticket-empty {
-  padding: var(--space-7) var(--space-5);
-  text-align: center;
-  color: var(--color-ink-faint);
-}
-
-.ticket-empty__icon {
-  font-size: 1.6rem;
-  margin-bottom: var(--space-2);
-  opacity: 0.6;
-}
-
-/* ---------- 9. Badges & statuts ---------- */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-}
-
-.badge--success {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.badge--accent {
-  background: var(--color-accent-soft);
-  color: var(--color-accent-dark);
-}
-
-.badge--neutral {
-  background: var(--color-bg);
-  color: var(--color-ink-soft);
-}
-
-/* ---------- 10. Alertes / messages ---------- */
-
-.alert {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  font-size: 0.88rem;
-  margin-bottom: var(--space-4);
-}
-
-.alert--success {
-  background: var(--color-success-soft);
-  border-color: rgba(60, 143, 91, 0.25);
-  color: var(--color-success);
-}
-
-.alert--error {
-  background: var(--color-danger-soft);
-  border-color: rgba(179, 38, 30, 0.2);
-  color: var(--color-danger);
-}
-
-.alert--info {
-  background: var(--color-primary-soft);
-  border-color: rgba(27, 94, 58, 0.15);
-  color: var(--color-primary-dark);
-}
-
-/* ---------- 11. Accessibilité ---------- */
-
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-a:focus-visible,
-.btn:focus-visible {
-  outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* ---------- 12. Responsive ---------- */
-
-@media (max-width: 720px) {
-  .container {
-    padding: 0 var(--space-4);
-  }
-
-  .app-topbar__inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
-  }
-
-  .app-nav {
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
-  .ticket-table th,
-  .ticket-table td {
-    padding: var(--space-2) var(--space-3);
-    font-size: 0.85rem;
-  }
-
-  .ticket__footer {
-    flex-direction: column-reverse;
-  }
-
-  .ticket__footer .btn {
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    color: var(--text-main);
+}
+
+/* =========================================
+   LOGIN SCREEN
+   ========================================= */
+.login-container {
     width: 100%;
-  }
+    max-width: 420px;
+    padding: 20px;
+    margin: 10vh auto;
 }
 
-@media (max-width: 480px) {
-  .card-ticket {
-    padding: var(--space-5) var(--space-4) var(--space-4);
-  }
+.login-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* ticket style border */
+    border-top: 6px solid var(--primary-color);
 }
 
-/* ---------- 13. Impression du ticket ---------- */
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
 
-@media print {
-  .app-topbar,
-  .barcode-strip,
-  .app-nav,
-  .btn,
-  .qty-stepper,
-  .field {
-    display: none !important;
-  }
+.login-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
 
-  body {
-    background: #fff;
-  }
+.login-header p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
 
-  .ticket {
+/* =========================================
+   FORMS & INPUTS
+   ========================================= */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.form-control,
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    background-color: #f9fafb;
+}
+
+.form-control:focus,
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--input-focus);
+    background-color: #fff;
+}
+
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+.btn {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 20px;
     border: none;
-    box-shadow: none;
-  }
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
 
-  .ticket-table th {
-    color: #000;
-  }
+.btn-block {
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-accent:hover {
+    background-color: var(--accent-hover);
+}
+
+/* =========================================
+   ALERTS
+   ========================================= */
+.alert {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.alert-danger {
+    background-color: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid #fca5a5;
+}
+
+/* =========================================
+   LAYOUT & HEADER
+   ========================================= */
+.app-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.top-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-info {
+    display: flex;
+    gap: 15px;
+}
+
+.info-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.info-badge.pending {
+    background: rgba(226, 84, 45, 0.2);
+    color: #ffddd2;
+    border: 1px dashed #E2542D;
+}
+
+.info-badge strong {
+    font-weight: 600;
+}
+
+.btn-logout {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.btn-logout:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.main-nav {
+    background: white;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    color: var(--text-main);
+    text-decoration: none;
+    padding: 15px 0;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* =========================================
+   DASHBOARD / MAIN CONTENT
+   ========================================= */
+.main-content {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    flex-grow: 1;
+}
+
+.dashboard-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-top: 6px solid var(--primary-color);
+}
+
+.card-header {
+    padding: 24px 24px 0 24px;
+    text-align: center;
+}
+
+.card-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    font-size: 28px;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.card-header p {
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.card .caisse-form {
+    padding: 24px;
+}
+
+.mt-4 {
+    margin-top: 24px;
 }
