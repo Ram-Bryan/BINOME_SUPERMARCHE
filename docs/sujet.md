@@ -1,0 +1,151 @@
+# Caisse de Supermarché — Cahier des charges complet
+
+**Formation :** ITUNIVERSITY — TD SI-IHM — CodeIgniter — Promo 18 — Juin 2026
+**Mode :** Binôme
+**Thème :** Caisse d'un supermarché
+
+> Les sections marquées 🔧 sont des extensions ajoutées au-delà du sujet original (gestion des clients). Tout le reste reprend fidèlement l'énoncé fourni.
+
+---
+
+## 1. Présentation du projet
+
+L'application simule un poste de caisse de supermarché. Un caissier se connecte, choisit sa caisse, puis enregistre les achats successifs de ses clients : ajout de produits au panier, récapitulatif avec total, et clôture de l'achat pour passer au client suivant.
+
+## 2. Contenu technique
+
+- **Langage / Framework :** PHP — CodeIgniter
+- **Base de données :** SQLite
+- **Notions travaillées :** architecture MVC, sessions PHP, formulaires, requêtes BDD, gestion d'état (panier en cours), templating
+
+## 3. Entités métier
+
+1. **Produit** — désignation, prix, quantité en stock
+2. **Caisse**
+3. **Achat**
+4. **Client** 🔧 — personne effectuant l'achat, distincte du caissier
+
+## 4. Fonctionnalités détaillées
+
+### 4.1 Mise en place (back-office)
+
+- Créer la base de données SQLite et les tables `produit`, `caisse`, `achat` (+ `client`, `utilisateur` 🔧)
+- Insérer 5 produits et 2 caisses de test
+- Initialiser le projet CodeIgniter
+- Créer le template général (header/footer/menu) à partir du fichier maquette fourni
+
+### 4.2 Authentification — écran de login
+
+- Premier écran affiché avant toute autre page
+- Champs : login, mot de passe
+- Vérification contre la table `utilisateur` (table des caissiers)
+- Message d'erreur explicite si identifiants invalides
+- En cas de succès : ouverture de session (`id_utilisateur`, nom du caissier) et redirection vers le choix de caisse
+
+### 4.3 Choix de la caisse
+
+- Écran avec une liste déroulante listant les caisses disponibles (table `caisse`) et un bouton **Valider**
+- Après validation : le numéro de caisse choisi est stocké en session et l'utilisateur est redirigé vers la page de saisie des achats
+
+### 4.4 Affichage permanent de la session
+
+- Sur toutes les pages suivant la connexion, la zone au-dessus du menu affiche en permanence : le caissier connecté et le numéro de caisse actif
+- Ces informations viennent uniquement de la session, jamais resaisies
+
+### 4.5 Saisie des achats — partie haute (formulaire)
+
+- Liste déroulante des produits (désignation + prix, table `produit`)
+- Champ quantité (stepper +/-)
+- Bouton **Ajouter / Valider**
+- Chaque validation ajoute une ligne au panier de l'achat en cours (le panier vit en session jusqu'à la clôture)
+
+### 4.6 Saisie des achats — partie basse (récapitulatif)
+
+- Tableau dynamique : Produit | Prix Unit. | Qté | Montant
+- Ligne **Total** recalculée à chaque ajout (somme des montants)
+- État vide explicite tant qu'aucun produit n'a été ajouté ("Aucun article pour le moment")
+
+### 4.7 Gestion du client 🔧
+
+- Table `client` séparée de `utilisateur` (le client ne s'authentifie pas, le caissier oui)
+- Au moment de l'achat (ou à la clôture), trois cas possibles :
+  - sélectionner un client déjà enregistré (liste déroulante / recherche)
+  - créer un nouveau client à la volée (nom, téléphone) — insertion immédiate puis rattachement à l'achat
+  - laisser l'achat anonyme (`id_client` reste vide / `NULL`)
+
+### 4.8 Clôture de l'achat
+
+- Bouton **Clôturer achat**
+- Enregistre l'achat et ses lignes en base (statut passe à `cloture`), met à jour le stock des produits
+- Vide le panier en session : l'écran de saisie repart à zéro pour le client suivant, sur la même caisse et avec le même caissier connecté
+
+## 5. Parcours utilisateur (vue d'ensemble)
+
+```
+Login → Choix de la caisse → Saisie des achats (boucle : Ajouter produit × N)
+                                       ↓
+                              Clôturer achat
+                                       ↓
+                     Retour saisie vide (client suivant)
+```
+
+## 6. Modèle de données
+
+| Table | Champs principaux | Relations |
+|---|---|---|
+| `utilisateur` | id_utilisateur, login, mot_de_passe, nom | référencé par `achat` |
+| `caisse` | id_caisse, numero, libelle | référencé par `achat` |
+| `produit` | id_produit, designation, prix, quantite_stock | référencé par `ligne_achat` |
+| `client` 🔧 | id_client, nom, telephone, email | référencé par `achat` (nullable) |
+| `achat` | id_achat, id_caisse, id_utilisateur, id_client 🔧, date_achat, statut, montant_total | parent de `ligne_achat` |
+| `ligne_achat` | id_ligne, id_achat, id_produit, quantite, prix_unitaire, montant | enfant de `achat` et `produit` |
+
+Le script SQL complet (création des tables + données de test : 5 produits, 2 caisses, 1 utilisateur) est fourni séparément dans `schema.sql`.
+
+## 7. Charte graphique
+
+Direction visuelle inspirée des objets réels d'une caisse : ticket de caisse et étiquette prix.
+
+- **Couleurs :** vert épicerie `#1B5E3A` (structure, actions principales), papier kraft `#F2EFE6` (fond), orange étiquette `#E2542D` (total, actions décisives comme la clôture)
+- **Typographies :** Barlow Condensed (titres/labels en majuscules), Inter (texte courant), IBM Plex Mono (tous les chiffres : prix, quantités, totaux — pour un alignement net)
+- **Signature :** carte à bord perforé pour les écrans de login et de choix de caisse, évoquant un ticket détaché d'un carnet
+- Feuille de style complète fournie séparément dans `style.css` (boutons, formulaires, tableau de ticket, badges, alertes, responsive, impression du ticket)
+
+## 8. Répartition des tâches (binôme)
+
+### Phase 0 — Socle commun (~35 min)
+
+| Tâche | Temps |
+|---|---|
+| Créer la BDD SQLite + tables + données de test | 30mn |
+| Initialiser CodeIgniter | 5mn |
+
+### Étudiant A — Authentification, navigation & session (~95 min)
+
+| Tâche | Temps |
+|---|---|
+| Template à partir du fichier fourni | 25mn |
+| Écran de login | 25mn |
+| Écran de choix de la caisse | 20mn |
+| Gestion de la session (caissier + caisse) et affichage au-dessus du menu | 25mn |
+
+### Étudiant B — Saisie des achats & clôture (~130 min)
+
+| Tâche | Temps |
+|---|---|
+| Saisie des achats — partie haute (formulaire produit/quantité) | 60mn |
+| Saisie des achats — partie basse (tableau récap + total) | 45mn |
+| Bouton « Clôturer achat » (sauvegarde, stock, reset panier) | 25mn |
+
+### Intégration finale (ensemble)
+
+- Vérifier l'enchaînement complet Login → Choix caisse → Saisie → Clôture → retour saisie vide
+- Vérifier qu'un changement de caisse ne mélange pas les paniers
+- Relecture croisée du code
+
+## 9. Livrables attendus (« À rendre »)
+
+- Code source du projet CodeIgniter
+- Fichier `schema.sql` (structure + données de test)
+- Fichier `style.css` (feuille de style)
+- Ce cahier des charges (`sujet.md`)

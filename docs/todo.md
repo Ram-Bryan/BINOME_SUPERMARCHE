@@ -19,6 +19,7 @@
 - [ ] Page de saisie des achats — partie haute : liste déroulante des produits + champ quantité + bouton Valider, qui ajoute une ligne au panier (en session) — 60mn
 - [ ] Page de saisie des achats — partie basse : tableau récapitulatif (Produit / Prix Unit / Qté / Montant) + ligne Total — 45mn
 - [ ] Bouton « Clôturer achat » : enregistrer l'achat et ses lignes en base, décrémenter le stock, vider le panier pour le client suivant — 25mn
+- [ ] Export
 
 ## Intégration finale (ensemble)
 
